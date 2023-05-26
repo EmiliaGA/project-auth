@@ -16,7 +16,13 @@ const port = process.env.PORT || 8080;
 const app = express();
 
 // Add middlewares to enable cors and json body parsing
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:3000", // Replace with your frontend URL
+    methods: ["GET", "POST"], // Specify the allowed methods
+    allowedHeaders: ["Content-Type", "Authorization"], // Specify the allowed headers
+  })
+); 
 app.use(express.json());
 
 // Defines endpoint paths as constants to be able to only update the paths in one place if needed
