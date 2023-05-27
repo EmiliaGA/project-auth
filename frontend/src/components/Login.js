@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from 'react';
 import styled  from "styled-components";
-import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import user from "reducers/user";
-import { API_URL } from "utils/utils";
+import { useDispatch, useSelector, batch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../utils/utils';
+import user from 'reducers/user';
 
 const OuterWrapper = styled.div `
   display: flex;
@@ -18,8 +18,8 @@ const InnerWrapper = styled.div `
     flex-direction: column;
     justify-content: center;
     text-align: center;
-    border: 1px solid #845ec2;
-    box-shadow: 4px 4px 8px #845ec2;
+    border: 1px solid #94b1aa;
+    box-shadow: 4px 4px 8px #94b1aa;
     padding: 10px;
     margin: 120px;
 
@@ -44,10 +44,10 @@ const FormWrapper = styled.div `
         cursor: pointer;
     }
     button {
-        background-color: #FFDCB6;
+        background-color: #568b7f;
         border: none;
         border-radius: 20px;
-        color: black;
+        color: #fff;
         padding: 10px 30px;
         text-align: center;
         text-decoration: none;
@@ -57,7 +57,7 @@ const FormWrapper = styled.div `
     }
 
 `
-const RLWrapper = styled.div`
+const Wrapper = styled.div`
     display: flex;
     flex-direction: row;
     justify-content: center;
@@ -85,7 +85,7 @@ const Login = () => {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({username: username, password: password})
+            body: JSON.stringify({name: username, password: password})
         }
         fetch(API_URL(mode), options)
             .then(response => response.json())
@@ -93,7 +93,7 @@ const Login = () => {
                 if(data.success) {
                     console.log(data)
                     dispatch(user.actions.setAccessToken(data.response.accessToken));
-                    dispatch(user.actions.setUsername(data.response.username));
+                    dispatch(user.actions.setUsername(data.response.name));
                     dispatch(user.actions.setUserId(data.response.id));
                     dispatch(user.actions.setError(null));
                 } else {
@@ -126,7 +126,7 @@ const Login = () => {
                     </form>
                 </FormWrapper>
                  
-                <RLWrapper>
+                <Wrapper>
                     <label htmlFor="register">Register</label>
                     <input 
                         type="radio" 
@@ -140,7 +140,7 @@ const Login = () => {
                         id="login" 
                         checked={mode === "login"}
                         onChange={() => setMode("login")}/>
-                </RLWrapper>
+                </Wrapper>
             </InnerWrapper>
         </OuterWrapper>
         

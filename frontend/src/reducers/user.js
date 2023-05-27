@@ -23,4 +23,4 @@ const user = createSlice ({
         }
     }
 });
-export default user
+export default user;

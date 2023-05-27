@@ -6,12 +6,8 @@ const NotFound = () => {
     return(
         <>
             <p>
-                <Link to="/login">GO TO LOGIN</Link>
+                <Link to="/login">Go to Login</Link>
             </p>
-            <p>
-                <Link to="/">GO TO MAIN</Link>
-            </p>
-            <p>Sorry, nothing here...</p>
         </>
     );
 }
