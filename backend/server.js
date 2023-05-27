@@ -18,12 +18,11 @@ const app = express();
 // Add middlewares to enable cors and json body parsing
 app.use(
   cors({
-    origin: "http://localhost:3000", // Replace with your frontend URL
-    methods: ["GET", "POST"], // Specify the allowed methods
-    allowedHeaders: ["Content-Type", "Authorization"], // Specify the allowed headers
+    origin: "https://emilia-michelle-project-auth.netlify.app",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
-); 
-app.use(express.json());
+);
 
 // Defines endpoint paths as constants to be able to only update the paths in one place if needed
 const PATHS = {
@@ -138,11 +137,27 @@ const authenticateUser = async (req, res, next) => {
   }
 }
 
-app.get(PATHS.secrets, authenticateUser);
+// Authenticate the user and return the secret message
 app.get(PATHS.secrets, async (req, res) => {
-  const secretMessage = "This is the secret page! Woop woop";
-  
-  res.status(200).json({secret: secretMessage})
+  const accessToken = req.header("Authorization");
+  try {
+    const user = await User.findOne({ accessToken: accessToken });
+    if (user) {
+      const secretMessage = "This is the secret page! Woop woop";
+      res.status(200).json({ secret: secretMessage });
+    } else {
+      res.status(401).json({
+        success: false,
+        response: "Please log in",
+        loggedOut: true,
+      });
+    }
+  } catch (e) {
+    res.status(500).json({
+      success: false,
+      response: e,
+    });
+  }
 });
 
 app.post(PATHS.sessions, async (req, res) => {
@@ -193,5 +208,3 @@ app.listen(port, () => {
 // API should validate the user input when creating a new user, and return error messages which could be shown by the frontend 
 
 // localStorage.removeItem() for log out (to not lose everything when logging out)
-
-
