@@ -4,8 +4,8 @@ import mongoose from "mongoose";
 import crypto from "crypto";
 import bcrypt from "bcrypt";
 import listEndpoints from "express-list-endpoints";
-//mongodb://127.0.0.1:27017/project-auth
-const mongoUrl = process.env.MONGO_URL || "mongodb+srv://1992el:XJooiGhvhFC3335w@cluster0.rd6ahvt.mongodb.net/";
+
+const mongoUrl = process.env.MONGO_URL || "mongodb://127.0.0.1:27017/project-auth";
 mongoose.connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true });
 mongoose.Promise = Promise;
 
