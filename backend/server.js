@@ -9,22 +9,17 @@ const mongoUrl = process.env.MONGO_URL || "mongodb://127.0.0.1:27017/project-aut
 mongoose.connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true });
 mongoose.Promise = Promise;
 
-// Defines the port the app will run on. Defaults to 8080, but can be overridden
-// when starting the server. Example command to overwrite PORT env variable value:
-// PORT=9000 npm start
 const port = process.env.PORT || 8080;
 const app = express();
 
-// Add middlewares to enable cors and json body parsing
 app.use(
   cors({
-    origin: "https://emilia-michelle-project-auth.netlify.app",
+    origin: true,
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// Defines endpoint paths as constants to be able to only update the paths in one place if needed
 const PATHS = {
   root: "/",
   register: "/register",
@@ -33,7 +28,6 @@ const PATHS = {
   sessions: "/sessions"
 }
 
-// Start defining your routes here
 app.get("/", (req, res) => {
   res.send(listEndpoints(app));
 });
@@ -58,13 +52,11 @@ const UserSchema = new mongoose.Schema({
 
 const User = mongoose.model("User", UserSchema);
 
-// Registration
 app.post(PATHS.register, async (req, res) => {
   const { name, password } = req.body;
 
   try {
     const salt = bcrypt.genSaltSync();
-    // Do not store plaintext passwords
     const newUser = await new User({
       name: name,
       password: bcrypt.hashSync(password, salt)})
@@ -78,21 +70,22 @@ app.post(PATHS.register, async (req, res) => {
       }
     })
   } catch (e) {
-    // Bad request
     res.status(400).json({
       success: false,
       response: e,
-      message: 'Could not create user', 
+      message: 'Could not create user',
       errors: e.errors
     });
   }
 });
-// Login
+
 app.post(PATHS.login, async (req, res) => {
   const { name, password } = req.body;
+
   try {
-    const user = await User.findOne({name: name})
+    const user = await User.findOne({ name: name });
     if (user && bcrypt.compareSync(password, user.password)) {
+      res.set("Access-Control-Allow-Origin", "https://emilia-michelle-project-auth.netlify.app");
       res.status(200).json({
         success: true,
         response: {
@@ -115,11 +108,10 @@ app.post(PATHS.login, async (req, res) => {
   }
 });
 
-// Authenticate the user
 const authenticateUser = async (req, res, next) => {
   const accessToken = req.header("Authorization");
   try {
-    const user = await User.findOne({accessToken: accessToken});
+    const user = await User.findOne({ accessToken: accessToken });
     if (user) {
       next();
     } else {
@@ -169,12 +161,9 @@ app.post(PATHS.sessions, async (req, res) => {
   }
 });
 
-
-// Start the server
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
 });
-
 
 
 // Test in postman
