@@ -9,17 +9,23 @@ const mongoUrl = process.env.MONGO_URL || "mongodb://127.0.0.1:27017/project-aut
 mongoose.connect(mongoUrl, { useNewUrlParser: true, useUnifiedTopology: true });
 mongoose.Promise = Promise;
 
+// Defines the port the app will run on. Defaults to 8080, but can be overridden
+// when starting the server. Example command to overwrite PORT env variable value:
+// PORT=9000 npm start
 const port = process.env.PORT || 8080;
 const app = express();
 
+// Add middlewares to enable cors and json body parsing
 app.use(
   cors({
-    origin: true,
-    methods: ["GET", "POST"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    origin: "https://emilia-michelle-project-auth.netlify.app", 
+    methods: ["GET", "POST"], // Specify the allowed methods
+    allowedHeaders: ["Content-Type", "Authorization"], // Specify the allowed headers
   })
-);
+); 
+app.use(express.json());
 
+// Defines endpoint paths as constants to be able to only update the paths in one place if needed
 const PATHS = {
   root: "/",
   register: "/register",
@@ -28,6 +34,7 @@ const PATHS = {
   sessions: "/sessions"
 }
 
+// Start defining your routes here
 app.get("/", (req, res) => {
   res.send(listEndpoints(app));
 });
@@ -52,11 +59,13 @@ const UserSchema = new mongoose.Schema({
 
 const User = mongoose.model("User", UserSchema);
 
+// Registration
 app.post(PATHS.register, async (req, res) => {
   const { name, password } = req.body;
 
   try {
     const salt = bcrypt.genSaltSync();
+    // Do not store plaintext passwords
     const newUser = await new User({
       name: name,
       password: bcrypt.hashSync(password, salt)})
@@ -70,22 +79,21 @@ app.post(PATHS.register, async (req, res) => {
       }
     })
   } catch (e) {
+    // Bad request
     res.status(400).json({
       success: false,
       response: e,
-      message: 'Could not create user',
+      message: 'Could not create user', 
       errors: e.errors
     });
   }
 });
-
+// Login
 app.post(PATHS.login, async (req, res) => {
   const { name, password } = req.body;
-
   try {
-    const user = await User.findOne({ name: name });
+    const user = await User.findOne({name: name})
     if (user && bcrypt.compareSync(password, user.password)) {
-      res.set("Access-Control-Allow-Origin", "https://emilia-michelle-project-auth.netlify.app");
       res.status(200).json({
         success: true,
         response: {
@@ -108,10 +116,11 @@ app.post(PATHS.login, async (req, res) => {
   }
 });
 
+// Authenticate the user
 const authenticateUser = async (req, res, next) => {
   const accessToken = req.header("Authorization");
   try {
-    const user = await User.findOne({ accessToken: accessToken });
+    const user = await User.findOne({accessToken: accessToken});
     if (user) {
       next();
     } else {
@@ -152,19 +161,10 @@ app.get(PATHS.secrets, async (req, res) => {
   }
 });
 
-app.post(PATHS.sessions, async (req, res) => {
-  const user = await User.findOne({ name: req.body.name });
-  if (user && bcrypt.compareSync(req.body.password, user.password)) {
-    res.json({ userId: user._id, accessToken: user.accessToken });
-  } else {
-    res.json({ notFound: true });
-  }
-});
-
+// Start the server
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
 });
-
 
 // Test in postman
 
@@ -180,7 +180,6 @@ app.listen(port, () => {
 //     "password": "password"
 // }
 
-
 // Get   http://localhost:8080/secrets
 // Headers: Authorization
 // Enter accessToken in value
@@ -190,10 +189,3 @@ app.listen(port, () => {
 //     "name": "name",
 //     "password": "password"
 // }
-
-// Authenticated endpoint
-// Return a 401 or 403 with error message if someone tries to access it without an authentication
-
-// API should validate the user input when creating a new user, and return error messages which could be shown by the frontend 
-
-// localStorage.removeItem() for log out (to not lose everything when logging out)
